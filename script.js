@@ -17,8 +17,17 @@ const dropZone = document.getElementById('drop-zone');
 
 
 
-await ffmpeg.load();
-
+// await ffmpeg.load();
+async function isSetUp(){
+    try{
+        await ffmpeg.load();
+        await ffmpeg.exec(['-version']);
+        status_Element.textContent = "I'M ALIVE";
+    }catch(e){
+        status_Element.textContent = "Init Error: "+ e.message;
+    }
+}
+isSetUp();
 ffmpeg.on("progress", ({ progress, time}) => {
     // update html with progress, time
     progress_Element.textContent = "Progress: " + progress;
@@ -31,16 +40,7 @@ ffmpeg.on("log", ({type, message}) => {
     message_Element.textContent = "Message: " + message;
 });
 
-const result = await ffmpeg.exec(['-version']);
-async function isSetUp(){
-    try{
-        await ffmpeg.load();
-        await ffmpeg.exec(['-version']);
-    }catch(e){
-        status_Element.textContent = "Init Error: "+ e.message;
-    }
-}
-isSetUp();
+
 async function runFFMPEG(filesArray){
     if(!filesArray || filesArray.length === 0){
         alert("Please import folder or multiple files");
