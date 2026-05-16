@@ -14,8 +14,21 @@
                 <td>instructions</td>
             </tr>
             <tr>
-                <th>Drop off your file</th>
+                <th>
+                    <div id = "drop-zone">
+                        <p>Drop your file</p>
+                        <input type = "file" id = "file-input">
+                    </div>
+                </th>
+                <td id="status">Status: idle</td>
+                <td id='progress'>Progress: idle</td>
+                <td id='time'>Time: idle</td>
                 <td>file spot thing</td>
+            </tr>
+            <tr>
+                <th>Logs</th>
+                <td id='type'>Type: none</td>
+                <td id='message'>Message: none</td>
             </tr>
             <tr>
                 <th>Settings</th>
@@ -23,7 +36,7 @@
             </tr>
             <tr>
                 <th>Recieve your file</th>
-                <td>click to download</td>
+                <td id='result'>click to download</td>
             </tr>
         </table>
         
