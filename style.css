@@ -5,3 +5,10 @@ th, td {
 th {
     text-align: left;
 }
+
+#file-input{
+    display: none;
+}
+#drop-zone{
+    background-color: cadetblue;
+}
