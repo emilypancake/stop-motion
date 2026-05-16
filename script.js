@@ -32,23 +32,36 @@ ffmpeg.on("log", ({type, message}) => {
 });
 
 const result = await ffmpeg.exec(['-version']);
-async function runFFMPEG(file){
-    if(!file){
-        alert("Please import file");
+async function isSetUp(){
+    try{
+        await ffmpeg.load();
+        await ffmpeg.exec(['-version']);
+    }catch(e){
+        status_Element.textContent = "Init Error: "+ e.message;
+    }
+}
+isSetUp();
+async function runFFMPEG(filesArray){
+    if(!filesArray || filesArray.length === 0){
+        alert("Please import folder or multiple files");
         return;
     }
     try {
-        status_Element.textContent = "Importing your file...";
-        const input = `input_${file.name}`;
+        status_Element.textContent = `Importing ${filesArray.length} files`;
+        
+        filesArray.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // const input = `input_${file.name}`;
         const output = `output.mp4`;
 
-        const arrayBuffer = await file.arrayBuffer(); //imported file -> array buffer
-        const uint8Array = new Uint8Array(arrayBuffer);
+        for(const file of filesArray){
+            const arrayBuffer = await file.arrayBuffer(); //imported file -> array buffer
+            const uint8Array = new Uint8Array(arrayBuffer);
+            await ffmpeg.writeFile(input, uint8Array);
+        }
+        status_Element.textContent = "Processing video...";
 
-        await ffmpeg.writeFile(input, uint8Array);
-        status_Element.textContent = "Processing...";
-
-        await ffmpeg.exec(['-framerate 8', '-i', input + "/frame-%05d.jpg" , "-c:v", 'libx264', '-pix_fmt', 'yuv420p', output]);
+        await ffmpeg.exec(['-framerate', '8', '-i', `${input}/frame-%05d.jpg` , "-c:v", 'libx264', '-pix_fmt', 'yuv420p', output]);
 
         const outputData = await ffmpeg.readFile(output);
 
@@ -60,9 +73,37 @@ async function runFFMPEG(file){
         status_Element.textContent = "Error: " + error;
     }
 }
-dropZone.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    if(files.length > 0){
-        runFFMPEG(files[0]);
+dropZone.addEventListener('drop', async (e) => {
+    const items = Array.from(e.dataTransfer.items);
+    if(!items.length){
+        return;
+    }
+    status_Element.textContent = "Scanning folder";
+    const allFiles = [];
+
+    async function scanEntry(entry) {
+        if(entry.isFile){
+            const file = await new Promise((resolve) => entry.file(resolve));
+            if(file.type.startsWith('image/') || file.name.endsWith('.jpg')){
+                allFiles.push(file);
+            }
+        }else if(entry.isDirectory){
+            const directoryReader = entry.createReader();
+            const entries = await new Promise((resolve)=> directoryReader.readEntries(resolve));
+            for(const subEntry of entries){
+                await scanEntry(subEntry); // recusive scan subfolder in rare case someone puts a folder in a folder
+            }
+        }
+    }
+    for (const item of items){
+        const entry = item.webkitGetAsEntry();
+        if(entry){
+            await scanEntry(entry);
+        }
+    }
+    if(allFiles.length >0){
+        runFFMPEG(allFiles);
+    }else{
+        status_Element.textContent = "no valid images found in folder";
     }
 });
