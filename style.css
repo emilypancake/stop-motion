@@ -6,9 +6,9 @@ th {
     text-align: left;
 }
 
-#file-input{
+/* #file-input{
     display: none;
-}
+} */
 #drop-zone{
     background-color: cadetblue;
     margin: 10px;
